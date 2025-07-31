@@ -14,12 +14,12 @@ Requires:
 
 
 ================================================================================
-Shortcut
+Default Shortcut
 
 - Tab       - accept the current suggestion
 - Shift+Tab - accept just the first line of the suggestion
 - Ctrl+B    - accept just the first word of the suggestion
-- Ctrl+F    - toggle FIM completion manually
+- Ctrl+F    - trigger FIM completion manually
 
 ================================================================================
 Commands
@@ -84,22 +84,27 @@ variable.
 Currently the default config is:
 >vim
 		let s:default_config = {
-			\ 'endpoint':         'http://127.0.0.1:8012/infill',
-			\ 'api_key':          '',
-			\ 'n_prefix':         256,
-			\ 'n_suffix':         64,
-			\ 'n_predict':        128,
-			\ 't_max_prompt_ms':  500,
-			\ 't_max_predict_ms': 500,
-			\ 'show_info':        2,
-			\ 'auto_fim':         v:true,
-			\ 'max_line_suffix':  8,
-			\ 'max_cache_keys':   250,
-			\ 'ring_n_chunks':    16,
-			\ 'ring_chunk_size':  64,
-			\ 'ring_scope':       1024,
-			\ 'ring_update_ms':   1000,
-			\ }
+		    \ 'endpoint':           'http://127.0.0.1:8012/infill',
+		    \ 'api_key':            '',
+		    \ 'n_prefix':           256,
+		    \ 'n_suffix':           64,
+		    \ 'n_predict':          128,
+		    \ 'stop_strings':       [],
+		    \ 't_max_prompt_ms':    500,
+		    \ 't_max_predict_ms':   500,
+		    \ 'show_info':          2,
+		    \ 'auto_fim':           v:true,
+		    \ 'max_line_suffix':    8,
+		    \ 'max_cache_keys':     250,
+		    \ 'ring_n_chunks':      16,
+		    \ 'ring_chunk_size':    64,
+		    \ 'ring_scope':         1024,
+		    \ 'ring_update_ms':     1000,
+		    \ 'keymap_trigger':     "<C-F>",
+		    \ 'keymap_accept_full': "<Tab>",
+		    \ 'keymap_accept_line': "<S-Tab>",
+		    \ 'keymap_accept_word': "<C-B>",
+		    \ }
 <
 
 - {endpoint}			llama.cpp server endpoint
@@ -113,6 +118,9 @@ Currently the default config is:
 						in the local suffix
 
 - {n_predict}			max number of tokens to predict
+
+- {stop_strings}		return the result immediately as soon as any of these
+						strings are encountered in the generated text
 
 - {t_max_prompt_ms}		max alloted time for the prompt processing
 						(TODO: not yet supported)
@@ -146,6 +154,16 @@ parameters for the ring-buffer with extra context:
 
 - {ring_update_ms}		how often to process queued chunks in normal mode
 
+keymaps parameters:
+
+- {keymap_trigger}		keymap to trigger the auto completion, default: <C-F>
+
+- {keymap_accept_full}	keymap to accept full suggestion, default: <Tab>
+
+- {keymap_accept_line}	keymap to accept line suggestion, default: <S-Tab>
+
+- {keymap_accept_word}	keymap to accept word suggestion, default: <C-B>
+
 Example:
 
 1. Disable the inline info (vimscript):
@@ -160,18 +178,33 @@ Example:
 
 3. Disable auto FIM completion, etc (lazy.nvim, lua):
 >lua
-    {
-        'ggml-org/llama.vim',
-        init = function()
-            vim.g.llama_config = {
-                n_prefix = 1024,
-                n_suffix= 1024,
-                auto_fim = false,
-            }
-        end,
-    }
+		{
+			'ggml-org/llama.vim',
+			init = function()
+				vim.g.llama_config = {
+					n_prefix = 1024,
+					n_suffix= 1024,
+					auto_fim = false,
+					keymap_accept_full = "<C-S>",
+				}
+			end,
+		}
 <
-
+4. Force single-line FIM completion (lazy.nvim, lua):
+>lua
+		{
+			'ggml-org/llama.vim',
+			init = function()
+				vim.g.llama_config = {
+					n_prefix = 1024,
+					n_suffix = 1024,
+					auto_fim = false,
+					keymap_accept_full = "<C-S>",
+					stop_strings = { "\n" },
+				}
+			end,
+		}
+<
 To adjust the colors for hint and info texts, `llama.vim` provides the
 highlight group `llama_hl_hint` and `llama_hl_info`. You can modify these
 groups using the normal way.
