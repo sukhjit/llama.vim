@@ -1003,7 +1003,13 @@ function! s:fim_render(pos_x, pos_y, data)
                 \ l:n_cached
                 \ )
         else
-            let l:info = printf("%s | c: %d, r: %d/%d, e: %d, q: %d/16, C: %d/%d | p: %d (%.2f ms, %.2f t/s) | g: %d (%.2f ms, %.2f t/s)",
+            let realMsg = "%s | c: %d, r: %d/%d, e: %d, q: %d/16, C: %d/%d | p: %d (%.2f ms, %.2f t/s) | g: %d (%.2f ms, %.2f t/s)"
+            if l:s_predict is v:null
+                " l:s_predict can be null, which throws an error: "E807: Expected Float argument for printf()"
+                " therefore we use a different message format when l:s_predict is null
+                let realMsg = "%s | c: %d, r: %d/%d, e: %d, q: %d/16, C: %d/%d | p: %d (%.2f ms, %.2f t/s) | g: %d (%.2f ms, %s)"
+            endif
+            let l:info = printf(realMsg,
                 \ g:llama_config.show_info == 2 ? l:prefix : 'llama.vim',
                 \ l:n_cached,  len(s:ring_chunks), g:llama_config.ring_n_chunks, s:ring_n_evict, len(s:ring_queued),
                 \ len(keys(g:cache_data)), g:llama_config.max_cache_keys,
